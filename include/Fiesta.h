@@ -160,7 +160,7 @@ void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool gl
      }
      if (!text.empty()) {
           visualization_msgs::Marker marker;
-          marker.header.frame_id = "world";
+          marker.header.frame_id = "t265_odom_frame";
           marker.header.stamp = ros::Time::now();
           marker.id = 3456;
           marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;

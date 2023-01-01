@@ -95,7 +95,7 @@ Visualization Manager:
   Global Options:
     Background Color: 255; 255; 127
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: t265_odom_frame
     Frame Rate: 30
   Name: root
   Tools:

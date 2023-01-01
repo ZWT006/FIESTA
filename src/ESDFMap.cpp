@@ -542,7 +542,7 @@ double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
 // region VISUALIZATION
 
 void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound) {
-  m.header.frame_id = "world";
+  m.header.frame_id = "t265_odom_frame";
   m.points.clear();
 #ifdef HASH_TABLE
   for (int i = 1; i < count; i++) {
@@ -638,7 +638,7 @@ inline std_msgs::ColorRGBA RainbowColorMap(double h) {
 
 void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, int id,
                                      Eigen::Vector4d color, double max_dist) {
-  m.header.frame_id = "world";
+  m.header.frame_id = "t265_odom_frame";
   m.id = id;
   m.type = visualization_msgs::Marker::POINTS;
   m.action = visualization_msgs::Marker::MODIFY;
