@@ -6,14 +6,14 @@
         <param name="update_esdf_every_n_sec" value="0.1"/>
 
         <!--Hash Table only-->
-        <param name="reserved_size" value="1000000"/>
+        <param name="reserved_size" value="8000000"/>
 
         <!--Array only-->
         <param name="lx" value="-10.0"/>
         <param name="ly" value="-10.0"/>
         <param name="lz" value="-1"/>
-        <param name="rx" value="+10.0"/>
-        <param name="ry" value="+10.0"/>
+        <param name="rx" value="+20.0"/>
+        <param name="ry" value="+6.0"/>
         <param name="rz" value="+3"/>
 
         <!-- raycasting parameters -->
@@ -41,9 +41,9 @@
         <param name="global_map" value="true"/>
         <param name="global_update" value="true"/>
         <param name="global_vis" value="true"/>
-        <param name="radius_x" value="3.0"/>
-        <param name="radius_y" value="3.0"/>
-        <param name="radius_z" value="1.5"/>
+        <param name="radius_x" value="10.0"/>
+        <param name="radius_y" value="10.0"/>
+        <param name="radius_z" value="2"/>
 
         <!--depth_filter -->
         <param name="use_depth_filter" value="true"/>
@@ -59,9 +59,9 @@
         <param name="slice_vis_max_dist" value="2.0"/>
         <!-- relative to the lz if array is used, relative to the origin if hash table is used -->
         <!--ESDFMap/occ_pc 's lower bound and upper bound'-->
-        <param name="slice_vis_level" value="1.2"/> <!--Marker-->
-        <param name="vis_lower_bound" value="-0.5"/>
-        <param name="vis_upper_bound" value="+1.2"/>
+        <param name="slice_vis_level" value="0.6"/> <!--Marker-->
+        <param name="vis_lower_bound" value="0"/>
+        <param name="vis_upper_bound" value="+5"/>
 
         <!-- subsribe source -->
         <!--<remap from="~pointcloud" to="/camera/depth/color/points"/>-->
