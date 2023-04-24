@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "ESDF_Map.h"
+#include "ESDFMap.h"
 #include <vector>
 #include <iostream>
 #include <Eigen/Eigen>
@@ -11,20 +11,20 @@ ros::Publisher occ_pub;
 ros::Publisher dist_pub;
 
 
-void visulization(ESDF_Map esdf_map) {
-    visualization_msgs::Marker occ_marker;
-    esdf_map.getOccupancyMarker(occ_marker, 0, Eigen::Vector4d(0, 0, 1.0, 0.8));
-    occ_pub.publish(occ_marker);
-    // visualize distance field
-    vector<visualization_msgs::Marker> dis_markers;
-    esdf_map.getESDFMarker(dis_markers, 0, Eigen::Vector3d(1.0, 0, 0));
-    for (int i = 0; i < int(dis_markers.size()); ++i) {
-        dist_pub.publish(dis_markers[i]);
-        ros::Duration(0.1).sleep();
-    }
+// void visulization(ESDFMap esdf_map) {
+//     visualization_msgs::Marker occ_marker;
+//     esdf_map.getOccupancyMarker(occ_marker, 0, Eigen::Vector4d(0, 0, 1.0, 0.8));
+//     occ_pub.publish(occ_marker);
+//     // visualize distance field
+//     vector<visualization_msgs::Marker> dis_markers;
+//     esdf_map.getESDFMarker(dis_markers, 0, Eigen::Vector3d(1.0, 0, 0));
+//     for (int i = 0; i < int(dis_markers.size()); ++i) {
+//         dist_pub.publish(dis_markers[i]);
+//         ros::Duration(0.1).sleep();
+//     }
 
-    ros::Duration(1.0).sleep();
-}
+//     ros::Duration(1.0).sleep();
+// }
 
 int main(int argc, char **argv) {
 

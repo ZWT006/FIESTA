@@ -542,7 +542,7 @@ double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
 // region VISUALIZATION
 
 void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound) {
-  m.header.frame_id = "t265_odom_frame";
+  m.header.frame_id = "world";
   m.points.clear();
 #ifdef HASH_TABLE
   for (int i = 1; i < count; i++) {
@@ -638,7 +638,7 @@ inline std_msgs::ColorRGBA RainbowColorMap(double h) {
 
 void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, int id,
                                      Eigen::Vector4d color, double max_dist) {
-  m.header.frame_id = "t265_odom_frame";
+  m.header.frame_id = "world";
   m.id = id;
   m.type = visualization_msgs::Marker::POINTS;
   m.action = visualization_msgs::Marker::MODIFY;
@@ -824,26 +824,30 @@ void fiesta::ESDFMap::SetOriginalRange() {
 }
 
 #ifndef PROBABILISTIC
-void SetAway(){
-    SetAway(min_vec_, max_vec_);
-  }
+void fiesta::ESDFMap::SetAway()
+{
+  SetAway(min_vec_, max_vec_);
+}
 
-  void SetAway(Eigen::Vector3i left, Eigen::Vector3i right) {
-      for (int i = left(0); i <= right(0); i++)
-          for (int j = left(1); j <= right(1); j++)
-              for (int k = left(2); k <= right(2); k++)
-                  occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] |= 2;
-  }
-  void SetBack(){
-    SetBack(min_vec_, max_vec_);
-  }
-  void SetBack(Eigen::Vector3i left, Eigen::Vector3i right) {
-      for (int i = left(0); i <= right(0); i++)
-          for (int j = left(1); j <= right(1); j++)
-              for (int k = left(2); k <= right(2); k++)
-                  if (occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] >= 2)
-                      SetOccupancy(Eigen::Vector3i(i, j, k), 0);
-  }
+void fiesta::ESDFMap::SetAway(Eigen::Vector3i left, Eigen::Vector3i right)
+{
+  for (int i = left(0); i <= right(0); i++)
+    for (int j = left(1); j <= right(1); j++)
+      for (int k = left(2); k <= right(2); k++)
+        occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] |= 2;
+}
+void fiesta::ESDFMap::SetBack()
+{
+  SetBack(min_vec_, max_vec_);
+}
+void fiesta::ESDFMap::SetBack(Eigen::Vector3i left, Eigen::Vector3i right)
+{
+  for (int i = left(0); i <= right(0); i++)
+    for (int j = left(1); j <= right(1); j++)
+      for (int k = left(2); k <= right(2); k++)
+        if (occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] >= 2)
+          SetOccupancy(Eigen::Vector3i(i, j, k), 0);
+}
 #endif
 
 //endregion

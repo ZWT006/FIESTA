@@ -160,7 +160,7 @@ void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool gl
      }
      if (!text.empty()) {
           visualization_msgs::Marker marker;
-          marker.header.frame_id = "t265_odom_frame";
+          marker.header.frame_id = "world";
           marker.header.stamp = ros::Time::now();
           marker.id = 3456;
           marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
@@ -201,8 +201,10 @@ void Fiesta<DepthMsgType, PoseMsgType>::RaycastProcess(int i, int part, int tt) 
           int cnt = 0;
           if (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z))
                continue;
-          Eigen::Vector4d tmp = transform_*Eigen::Vector4d(pt.x, pt.y, pt.z, 1);
-          Eigen::Vector3d point = Eigen::Vector3d(tmp(0), tmp(1), tmp(2))/tmp(3);
+          // zwt point cloud transform
+          // Eigen::Vector4d tmp = transform_*Eigen::Vector4d(pt.x, pt.y, pt.z, 1);
+          // Eigen::Vector3d point = Eigen::Vector3d(tmp(0), tmp(1), tmp(2))/tmp(3);
+          Eigen::Vector3d point = Eigen::Vector3d(pt.x, pt.y, pt.z);
 
           int tmp_idx;
           double length = (point - raycast_origin_).norm();
