@@ -73,6 +73,6 @@
         <remap from="~transform" to="/t265/odom/sample"/>
     </node>
 
-    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find fiesta)/demo.rviz" />
+    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find fiesta)/rvizconfig/demo.rviz" />
 </launch>
 
