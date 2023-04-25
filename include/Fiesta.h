@@ -139,7 +139,7 @@ Fiesta<DepthMsgType, PoseMsgType>::~Fiesta() {
      delete inv_esdf_map_;
 #endif
 }
-
+// zwt ESDF visualization
 template<class DepthMsgType, class PoseMsgType>
 void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool global_vis, const std::string &text) {
      if (esdf_map!=nullptr) {
@@ -202,10 +202,16 @@ void Fiesta<DepthMsgType, PoseMsgType>::RaycastProcess(int i, int part, int tt) 
           if (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z))
                continue;
           // zwt point cloud transform
-          // Eigen::Vector4d tmp = transform_*Eigen::Vector4d(pt.x, pt.y, pt.z, 1);
-          // Eigen::Vector3d point = Eigen::Vector3d(tmp(0), tmp(1), tmp(2))/tmp(3);
-          Eigen::Vector3d point = Eigen::Vector3d(pt.x, pt.y, pt.z);
-
+          Eigen::Vector3d point;
+          if (parameters_.global_pcl_) //global pcl directly using
+          {
+               point = Eigen::Vector3d(pt.x, pt.y, pt.z);
+          }
+          else //local pcl need transform
+          {
+               Eigen::Vector4d tmp = transform_*Eigen::Vector4d(pt.x, pt.y, pt.z, 1);
+               point = Eigen::Vector3d(tmp(0), tmp(1), tmp(2))/tmp(3);
+          }
           int tmp_idx;
           double length = (point - raycast_origin_).norm();
           if (length < parameters_.min_ray_length_)

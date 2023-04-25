@@ -32,6 +32,7 @@ void fiesta::Parameters::SetParameters(const ros::NodeHandle &node) {
   node.param<bool>("global_map", global_map_, true);
   node.param<bool>("global_update", global_update_, true);
   node.param<bool>("global_vis", global_vis_, true);
+  node.param<bool>("global_pcl", global_pcl_, false);
   if (!global_map_)
     global_vis_ = global_update_ = false;
 
@@ -58,6 +59,9 @@ void fiesta::Parameters::SetParameters(const ros::NodeHandle &node) {
   l_cornor_ << lx, ly, lz;
   r_cornor_ << rx, ry, rz;
   map_size_ = r_cornor_ - l_cornor_;
+  slice_vis_level_ = slice_vis_level_ - int(lz / resolution_);
+  vis_lower_bound_ = vis_lower_bound_ - int(lz / resolution_);
+  vis_upper_bound_ = vis_upper_bound_ - int(lz / resolution_);
 #endif
 
   node.param<double>("update_esdf_every_n_sec", update_esdf_every_n_sec_, 0.1f);

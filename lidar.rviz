@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Odometry1/Shape1
+        - /TF1
       Splitter Ratio: 0.5
     Tree Height: 718
   - Class: rviz/Selection
@@ -56,8 +57,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.9749999046325684
-        Min Value: -0.5249999761581421
+        Max Value: 3.0250000953674316
+        Min Value: -0.4749999940395355
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -82,13 +83,13 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /fiesta/ESDFMap/slice
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 0.10000000149011612
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -138,11 +139,11 @@ Visualization Manager:
       Keep: 10
       Name: Odometry
       Position Tolerance: 0.10000000149011612
-      Queue Size: 10
+      Queue Size: 1
       Shape:
         Alpha: 0.5
-        Axes Length: 0.5
-        Axes Radius: 0.05000000074505806
+        Axes Length: 0.20000000298023224
+        Axes Radius: 0.019999999552965164
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -166,7 +167,7 @@ Visualization Manager:
         world:
           Value: true
       Marker Alpha: 1
-      Marker Scale: 1
+      Marker Scale: 2
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -259,7 +260,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 39.74597930908203
+      Distance: 28.55017852783203
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -275,9 +276,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5397956371307373
+      Pitch: 0.8247970342636108
       Target Frame: <Fixed Frame>
-      Yaw: 1.1305570602416992
+      Yaw: 1.0005600452423096
     Saved: ~
 Window Geometry:
   Displays:

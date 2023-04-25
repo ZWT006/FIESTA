@@ -8,16 +8,16 @@
         <!--Hash Table only-->
         <param name="reserved_size" value="8000000"/>
 
-        <!--Array only-->
-        <param name="lx" value="-10.0"/>
-        <param name="ly" value="-10.0"/>
+        <!--Array only l[x,y,z] & r[x,y,z] confirm the map size-->
+        <param name="lx" value="-20.0"/>
+        <param name="ly" value="-20.0"/>
         <param name="lz" value="-1"/>
         <param name="rx" value="+20.0"/>
-        <param name="ry" value="+6.0"/>
-        <param name="rz" value="+3"/>
+        <param name="ry" value="+20.0"/>
+        <param name="rz" value="+4"/>
 
         <!-- raycasting parameters -->
-        <param name="min_ray_length" value="0.5"/>
+        <param name="min_ray_length" value="0.3"/>
         <param name="max_ray_length" value="10.0"/>
         <!--If hash table is used, make sure the value is 0. In array implementation, 0 means no other thread.-->
         <param name="ray_cast_num_thread" value="0"/>
@@ -25,10 +25,10 @@
 
 
         <!-- needed when using depth image-->
-        <!--        <param name="center_x" value="323.120483"/>-->
-        <!--        <param name="center_y" value="236.743210"/>-->
-        <!--        <param name="focal_x" value="385.754486"/>-->
-        <!--        <param name="focal_y" value="385.754486"/>-->
+        <!-- <param name="center_x" value="323.120483"/>-->
+        <!-- <param name="center_y" value="236.743210"/>-->
+        <!-- <param name="focal_x" value="385.754486"/>-->
+        <!-- <param name="focal_y" value="385.754486"/>-->
 
         <!-- probabilistic grid map -->
         <param name="p_hit" value="0.70"/>
@@ -38,15 +38,16 @@
         <param name="p_occ" value="0.80"/>
 
         <!-- global / local -->
-        <param name="global_map" value="false"/>
+        <param name="global_pcl" value="true"/>
+        <param name="global_map" value="true"/>
         <param name="global_update" value="true"/>
-        <param name="global_vis" value="false"/>
+        <param name="global_vis" value="true"/>
         <param name="radius_x" value="4.0"/>
         <param name="radius_y" value="4.0"/>
         <param name="radius_z" value="2"/>
 
         <!--depth_filter -->
-        <param name="use_depth_filter" value="false"/>
+        <param name="use_depth_filter" value="true"/>
         <param name="depth_filter_tolerance" value="0.1"/>
         <param name="depth_filter_max_dist" value="10.0"/>
         <param name="depth_filter_min_dist" value="0.1"/>
@@ -59,9 +60,10 @@
         <param name="slice_vis_max_dist" value="2.0"/>
         <!-- relative to the lz if array is used, relative to the origin if hash table is used -->
         <!--ESDFMap/occ_pc 's lower bound and upper bound'-->
-        <param name="slice_vis_level" value="1"/> <!--Marker-->
-        <param name="vis_lower_bound" value="0"/>
-        <param name="vis_upper_bound" value="+5"/>
+        <!-- real high is lz + vis_high-->
+        <param name="slice_vis_level" value="0.05"/> <!--Marker-->
+        <param name="vis_lower_bound" value="-0.5"/>
+        <param name="vis_upper_bound" value="3"/>
 
         <!-- subsribe source -->
         <!--<remap from="~pointcloud" to="/camera/depth/color/points"/>-->
