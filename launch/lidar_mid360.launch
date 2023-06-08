@@ -11,7 +11,7 @@
         <!--Array only l[x,y,z] & r[x,y,z] confirm the map size-->
         <param name="lx" value="-20.0"/>
         <param name="ly" value="-20.0"/>
-        <param name="lz" value="-1"/>
+        <param name="lz" value="-0.2"/>
         <param name="rx" value="+20.0"/>
         <param name="ry" value="+20.0"/>
         <param name="rz" value="+4"/>
@@ -39,7 +39,7 @@
         <param name="global_pcl" value="true"/>
         <param name="global_map" value="true"/>
         <param name="global_update" value="true"/>
-        <param name="global_vis" value="true"/>
+        <param name="global_vis" value="false"/>
         <param name="radius_x" value="4.0"/>
         <param name="radius_y" value="4.0"/>
         <param name="radius_z" value="2"/>
@@ -70,6 +70,7 @@
         <!-- <remap from="~depth" to="/Laser_map"/> -->
         <remap from="~transform" to="/Odometry"/>
     </node>
+    <!-- this static tf for connect fast_lio and fiesta odom-->
     <node pkg="tf" type="static_transform_publisher" name="tf_world_to_map" 
         args="0 0 0 0 0 0 1 camera_init world 100 " />
 

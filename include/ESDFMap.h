@@ -12,8 +12,11 @@
 #include <vector>
 #include <unordered_map>
 #include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <algorithm>
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
 #include "parameters.h"
 
 namespace fiesta {
@@ -48,18 +51,18 @@ class ESDFMap {
  private:
   // parameters & method for occupancy information updating
   double prob_hit_log_, prob_miss_log_, clamp_min_log_, clamp_max_log_, min_occupancy_log_;
-  const double Logit(const double &x) const;
+  inline const double Logit(const double &x) const;
   bool Exist(const int &idx);
-  double Dist(Eigen::Vector3i a, Eigen::Vector3i b);
+  inline double Dist(Eigen::Vector3i a, Eigen::Vector3i b);
 
   // parameters & methods for conversion between Pos, Vox & Idx
   bool PosInMap(Eigen::Vector3d pos);
   bool VoxInRange(Eigen::Vector3i vox, bool current_vec = true);
-  void Vox2Pos(Eigen::Vector3i vox, Eigen::Vector3d &pos);
-  int Vox2Idx(Eigen::Vector3i vox);
-  int Vox2Idx(Eigen::Vector3i vox, int sub_sampling_factor);
-  void Pos2Vox(Eigen::Vector3d pos, Eigen::Vector3i &vox);
-  Eigen::Vector3i Idx2Vox(int idx);
+  inline void Vox2Pos(Eigen::Vector3i vox, Eigen::Vector3d &pos);
+  inline int Vox2Idx(Eigen::Vector3i vox);
+  inline int Vox2Idx(Eigen::Vector3i vox, int sub_sampling_factor);
+  inline void Pos2Vox(Eigen::Vector3d pos, Eigen::Vector3i &vox);
+  inline Eigen::Vector3i Idx2Vox(int idx);
 
   // HASH TABLE related
 #ifdef HASH_TABLE
@@ -143,6 +146,7 @@ class ESDFMap {
 // Visualization
   void GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound);
   void GetSliceMarker(visualization_msgs::Marker &m, int slice, int id, Eigen::Vector4d color, double max_dist);
+  void Get2DESDFMap(sensor_msgs::PointCloud2 &pcl, int slice, double max_dist);
 
 // Local Range
   void SetUpdateRange(Eigen::Vector3d min_pos, Eigen::Vector3d max_pos, bool new_vec = true);

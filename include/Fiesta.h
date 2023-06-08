@@ -35,7 +35,7 @@ template<class DepthMsgType, class PoseMsgType>
 class Fiesta {
 private:
     Parameters parameters_;
-    ESDFMap *esdf_map_;
+//     ESDFMap *esdf_map_;
 #ifdef SIGNED_NEEDED
     ESDFMap *inv_esdf_map_;
 #endif
@@ -82,6 +82,9 @@ private:
 public:
     Fiesta(ros::NodeHandle node);
     ~Fiesta();
+    ESDFMap *esdf_map_;
+//     double getDistance(Eigen::Vector3d pos);
+//     bool getOccupancy(Eigen::Vector3d pos);
 };
 
 template<class DepthMsgType, class PoseMsgType>

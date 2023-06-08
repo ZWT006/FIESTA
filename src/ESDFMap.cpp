@@ -275,6 +275,7 @@ void fiesta::ESDFMap::UpdateESDF() {
 //    startTime = clock();
 //    UpdateOccupancy();
   cout << "Insert " << insert_queue_.size() << "\tDelete " << delete_queue_.size() << endl;
+  
   while (!insert_queue_.empty()) {
     QueueElement xx = insert_queue_.front();
     insert_queue_.pop();
@@ -635,7 +636,7 @@ inline std_msgs::ColorRGBA RainbowColorMap(double h) {
 
   return color;
 }
-
+// zwt esdf using 其它地方没有esdf 信息的相关操作,只有这里进行了可视化
 void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, int id,
                                      Eigen::Vector4d color, double max_dist) {
   m.header.frame_id = "world";
@@ -698,6 +699,52 @@ void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, i
 #endif
 }
 
+void fiesta::ESDFMap::Get2DESDFMap(sensor_msgs::PointCloud2 &pcl, int slice, double max_dist)
+{
+  pcl::PointCloud<pcl::PointXYZI> cloud;
+  #ifdef HASH_TABLE
+    // TODO: low performance, need to be modified, which is also easy
+    for (int i = 1; i < count; i++) {
+      int idx = Vox2Idx(vox_buffer_[i]);
+      if (vox_buffer_[i].z() != slice || distance_buffer_[idx] < 0 || distance_buffer_[idx] >= infinity_
+          || vox_buffer_[i].x() < min_vec_(0) || vox_buffer_[i].x() > max_vec_(0)
+          || vox_buffer_[i].y() < min_vec_(1) || vox_buffer_[i].y() > max_vec_(1))
+        continue;
+
+      Eigen::Vector3d pos;
+      Vox2Pos(Eigen::Vector3i(vox_buffer_[i]), pos);
+
+      pcl::PointXYZI pt;
+      pt.x = pos(0);
+      pt.y = pos(1);
+      pt.z = pos(2);
+      pt.intensity = distance_buffer_[idx];
+      cloud.push_back(pt);
+    }
+  #else
+    for (int x = min_vec_(0); x <= max_vec_(0); ++x)
+      for (int y = min_vec_(1); y <= max_vec_(1); ++y) {
+        int z = slice;
+        Eigen::Vector3i vox = Eigen::Vector3i(x, y, z);
+        if (distance_buffer_[Vox2Idx(vox)] < 0 || distance_buffer_[Vox2Idx(vox)] >= infinity_)
+          continue;
+
+        Eigen::Vector3d pos;
+        Vox2Pos(vox, pos);
+        pcl::PointXYZI pt;
+        pt.x = pos(0);
+        pt.y = pos(1);
+        pt.z = pos(2);
+        pt.intensity = distance_buffer_[Vox2Idx(vox)];
+        cloud.push_back(pt);
+      }
+  #endif
+  cloud.width = cloud.points.size();
+  cloud.height = 1;
+  cloud.is_dense = true;
+  cloud.header.frame_id = "world";
+  pcl::toROSMsg(cloud, pcl);
+  }
 // endregion
 
 // region HASH_TABLE
