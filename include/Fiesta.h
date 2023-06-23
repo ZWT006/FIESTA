@@ -23,6 +23,9 @@
 #include <visualization_msgs/Marker.h>
 #include <sensor_msgs/PointCloud.h>
 #include <unordered_set>
+
+//zwt ADD #########################################################
+#include <sensor_msgs/point_cloud_conversion.h>
 namespace fiesta {
 
 // sensor_msgs::PointCloud2::ConstPtr
@@ -53,6 +56,8 @@ private:
     std::queue<std::tuple<ros::Time, Eigen::Vector3d, Eigen::Quaterniond>> transform_queue_;
     std::queue<DepthMsgType> depth_queue_;
     DepthMsgType sync_depth_;
+
+    sensor_msgs::PointCloud2 tmp2;
 
     cv::Mat img_[2];
     Eigen::Matrix4d transform_, last_transform_;
@@ -131,7 +136,7 @@ Fiesta<DepthMsgType, PoseMsgType>::Fiesta(ros::NodeHandle node) {
      text_pub_ = node.advertise<visualization_msgs::Marker>("ESDFMap/text", 1, true);
 
      update_mesh_timer_ =
-         node.createTimer(ros::Duration(parameters_.update_esdf_every_n_sec_),
+     node.createTimer(ros::Duration(parameters_.update_esdf_every_n_sec_),
                           &Fiesta::UpdateEsdfEvent, this);
 }
 
@@ -153,7 +158,13 @@ void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool gl
                esdf_map->SetUpdateRange(cur_pos_ - parameters_.radius_, cur_pos_ + parameters_.radius_, false);
 
           sensor_msgs::PointCloud pc;
-          esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_);
+          // zwt ADD #########################################################
+          if (parameters_.local_height_) // 如果期望的 occupancy map 是局部的，那么需要更新局部的高度范围
+               esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_ + parameters_.local_height_offset_, parameters_.vis_upper_bound_ + parameters_.local_height_offset_);
+          else
+          // zwt ADD #########################################################
+               esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_);
+
           occupancy_pub_.publish(pc);
 
           visualization_msgs::Marker slice_marker;
@@ -435,7 +446,16 @@ void Fiesta<DepthMsgType, PoseMsgType>::SynchronizationAndProcess() {
           } else if constexpr(std::is_same<DepthMsgType, sensor_msgs::PointCloud2::ConstPtr>::value) {
                sensor_msgs::PointCloud2::ConstPtr tmp = depth_queue_.front();
                pcl::fromROSMsg(*tmp, cloud_);
+          } 
+          // zwt ADD #########################################################
+          else if constexpr(std::is_same<DepthMsgType, sensor_msgs::PointCloud::ConstPtr>::value) {
+               sensor_msgs::PointCloud::ConstPtr tmp = depth_queue_.front();
+               
+               sensor_msgs::convertPointCloudToPointCloud2(*tmp, tmp2);
+               pcl::fromROSMsg(tmp2, cloud_);
+               // delete tmp2;
           }
+          // zwt ADD #########################################################
 
           std::cout << "Pointcloud Size:\t" << cloud_.points.size() << std::endl;
           if ((int) cloud_.points.size()==0) {
@@ -479,7 +499,14 @@ void Fiesta<DepthMsgType, PoseMsgType>::PoseCallback(const PoseMsgType &msg) {
                                  msg->transform.rotation.y,
                                  msg->transform.rotation.z);
      }
-
+     // zwt ADD #########################################################
+     parameters_.local_height_offset_ = (int)(pos.z() / parameters_.resolution_);
+     // if (parameters_.local_height_) // 如果期望的 occupancy map 是局部的，那么需要更新局部的高度范围
+     // {
+     //      parameters_.vis_lower_bound_ += parameters_.local_height_offset_;
+     //      parameters_.vis_upper_bound_ += parameters_.local_height_offset_;
+     // }
+     // zwt ADD #########################################################
      transform_queue_.push(std::make_tuple(msg->header.stamp, pos, q));
 }
 
@@ -522,7 +549,10 @@ void Fiesta<DepthMsgType, PoseMsgType>::UpdateEsdfEvent(const ros::TimerEvent & 
           else
                esdf_map_->SetUpdateRange(cur_pos_ - parameters_.radius_, cur_pos_ + parameters_.radius_);
           esdf_map_->UpdateOccupancy(parameters_.global_update_);
-          esdf_map_->UpdateESDF();
+          // zwt ADD #########################################################
+          if (parameters_.esdf_update_) // switch esdf update
+               esdf_map_->UpdateESDF();
+          // zwt ADD #########################################################
 #ifdef SIGNED_NEEDED
           // TODO: Complete this SIGNED_NEEDED
             inv_esdf_map_->UpdateOccupancy();

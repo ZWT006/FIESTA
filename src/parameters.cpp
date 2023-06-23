@@ -32,7 +32,11 @@ void fiesta::Parameters::SetParameters(const ros::NodeHandle &node) {
   node.param<bool>("global_map", global_map_, true);
   node.param<bool>("global_update", global_update_, true);
   node.param<bool>("global_vis", global_vis_, true);
+  // zwt ADD #########################################################
   node.param<bool>("global_pcl", global_pcl_, false);
+  node.param<bool>("local_height", local_height_, false);
+  node.param<bool>("esdf_update", esdf_update_, true);
+  // zwt ADD #########################################################
   if (!global_map_)
     global_vis_ = global_update_ = false;
 

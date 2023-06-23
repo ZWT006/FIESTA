@@ -11,7 +11,7 @@
         <!--Array only l[x,y,z] & r[x,y,z] confirm the map size-->
         <param name="lx" value="-20.0"/>
         <param name="ly" value="-20.0"/>
-        <param name="lz" value="-0.2"/>
+        <param name="lz" value="-2"/>
         <param name="rx" value="+20.0"/>
         <param name="ry" value="+20.0"/>
         <param name="rz" value="+4"/>
@@ -36,17 +36,17 @@
         <param name="p_occ" value="0.80"/>
 
         <!-- zwt ADD parameters for self using -->
-        <param name="global_pcl" value="true"/> <!--global_pcl switch input pcl is local(trans by odometry)/global(trans needless)-->
+        <param name="global_pcl" value="false"/> <!--global_pcl switch input pcl is local(trans by odometry)/global(trans needless)-->
         <param name="local_height" value="true"/> <!--local_height switch vis_bound is fixed/ update with odometry-->
-        <param name="esdf_update" value="false"/> <!--esdf_update switch esdf is update/ not update-->
+        <param name="esdf_update" value="true"/> <!--esdf_update switch esdf is update/ not update-->
 
         <!-- global / local -->
         <param name="global_map" value="true"/> 
         <param name="global_update" value="true"/>
         <param name="global_vis" value="false"/>
-        <param name="radius_x" value="4.0"/>
-        <param name="radius_y" value="4.0"/>
-        <param name="radius_z" value="2"/>
+        <param name="radius_x" value="2.0"/>
+        <param name="radius_y" value="2.0"/>
+        <param name="radius_z" value="1"/>
 
         <!--depth_filter -->
         <param name="use_depth_filter" value="true"/>
@@ -63,23 +63,25 @@
         <!-- relative to the lz if array is used, relative to the origin if hash table is used -->
         <!--ESDFMap/occ_pc 's lower bound and upper bound'-->
         <!-- vis_high is real high as absolute zwt modify -->
-        <param name="slice_vis_level" value="0.05"/> <!--Marker-->
-        <param name="vis_lower_bound" value="-0.5"/>
+        <param name="slice_vis_level" value="0.2"/> <!--Marker-->
+        <param name="vis_lower_bound" value="-1.5"/>
         <param name="vis_upper_bound" value="3"/>
 
         <!-- subsribe source -->
         <!--<remap from="~pointcloud" to="/camera/depth/color/points"/>-->
         <!-- <remap from="~depth" to="/camera/depth/image_rect_raw"/>-->
         <!-- <remap from="~depth" to="/Laser_map"/> -->
-        <remap from="~depth" to="/cloud_registered"/>
-        <remap from="~transform" to="/Odometry"/>
-        <!-- <remap from="~depth" to="/livox/lidar"/> -->
-        <!-- <remap from="~transform" to="/ground_truth/state"/> -->
+        <!-- <remap from="~depth" to="/cloud_registered"/> -->
+        <!-- <remap from="~transform" to="/Odometry"/> -->
+        <remap from="~depth" to="/livox/lidar"/>
+        <remap from="~transform" to="/ground_truth/state"/>
     </node>
     <!-- this static tf for connect fast_lio and fiesta odom-->
     <node pkg="tf" type="static_transform_publisher" name="tf_world_to_map" 
         args="0 0 0 0 0 0 1 camera_init world 100 "/>
+    <node pkg="tf" type="static_transform_publisher" name="tf_world_to_odom" 
+        args="0 0 0 0 0 0 1 world odom 100 "/>
 
-    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find fiesta)/rvizconfig/lidar.rviz" />
+    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find fiesta)/rvizconfig/livoxsim.rviz" />
 </launch>
 

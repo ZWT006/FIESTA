@@ -158,8 +158,15 @@ struct Parameters {
   int ray_cast_num_thread_;
   // local map
   bool global_vis_, global_update_, global_map_;
+  // zwt ADD #########################################################
   // global pcl
   bool global_pcl_;
+  // local height
+  bool local_height_;
+  // esdf update
+  bool esdf_update_;
+  int local_height_offset_; // local height offset for local map publisher
+  // zwt ADD #########################################################
   Eigen::Vector3d radius_;
   // transforms
   Eigen::Matrix4d T_B_C_, T_D_B_;
