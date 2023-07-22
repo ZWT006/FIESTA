@@ -48,6 +48,8 @@ private:
     sensor_msgs::PointCloud2::ConstPtr sync_pc_;
 #endif
     ros::Publisher slice_pub_, occupancy_pub_, text_pub_;
+    //zwd ADD #########################################################
+    ros::Publisher occupancy_img_pub_, esdf_pcl_pub_;
     ros::Subscriber transform_sub_, depth_sub_;
     ros::Timer update_mesh_timer_;
     Eigen::Vector3d sync_pos_, raycast_origin_, cur_pos_;
@@ -135,6 +137,10 @@ Fiesta<DepthMsgType, PoseMsgType>::Fiesta(ros::NodeHandle node) {
      occupancy_pub_ = node.advertise<sensor_msgs::PointCloud>("ESDFMap/occ_pc", 1, true);
      text_pub_ = node.advertise<visualization_msgs::Marker>("ESDFMap/text", 1, true);
 
+     // zwt ADD #########################################################
+     occupancy_img_pub_ = node.advertise<sensor_msgs::Image>("ESDFMap/occ_img", 1, true);
+     esdf_pcl_pub_ = node.advertise<sensor_msgs::PointCloud2>("ESDFMap/esdf_pcl", 1, true);
+
      update_mesh_timer_ =
      node.createTimer(ros::Duration(parameters_.update_esdf_every_n_sec_),
                           &Fiesta::UpdateEsdfEvent, this);
@@ -147,30 +153,86 @@ Fiesta<DepthMsgType, PoseMsgType>::~Fiesta() {
      delete inv_esdf_map_;
 #endif
 }
-// zwt ESDF visualization
+// zwt ESDF visualization #########################################################
+// this code for esdf map visualization or publish datas for calls outside
+// using bool switch to control the visualization or publish to improve the efficiency
 template<class DepthMsgType, class PoseMsgType>
 void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool global_vis, const std::string &text) {
      if (esdf_map!=nullptr) {
           std::cout << "Visualization" << std::endl;
           if (global_vis)
                esdf_map->SetOriginalRange();
-          else
+          else //Note: 注意这里设置的更新范围 当前位置+-radius
                esdf_map->SetUpdateRange(cur_pos_ - parameters_.radius_, cur_pos_ + parameters_.radius_, false);
 
-          sensor_msgs::PointCloud pc;
-          // zwt ADD #########################################################
-          if (parameters_.local_height_) // 如果期望的 occupancy map 是局部的，那么需要更新局部的高度范围
-               esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_ + parameters_.local_height_offset_, parameters_.vis_upper_bound_ + parameters_.local_height_offset_);
-          else
-          // zwt ADD #########################################################
-               esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_);
+          // zwt ADD ########################################################################################
+          // switch occupancy pcl visualization or not ######################################################
+          if (parameters_.occupancy_pcl_pub_) {
+               sensor_msgs::PointCloud pc;
+               if (parameters_.local_height_) // 如果期望的 occupancy map 是局部的，那么需要更新局部的高度范围
+                    esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_ + parameters_.local_height_offset_, parameters_.vis_upper_bound_ + parameters_.local_height_offset_);
+               else
+                    esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_);
 
-          occupancy_pub_.publish(pc);
+               occupancy_pub_.publish(pc);
+          }
+          if (parameters_.occupancy_img_pub_ || parameters_.occupancy_DUP_pub_) {
+               cv::Mat image;
+               if (global_vis) 
+                    esdf_map->Get2DGlobalGridImage(image, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_);
+               else
+                    esdf_map->Get2DLocalGridImage(image, parameters_.vis_lower_bound_, parameters_.vis_upper_bound_, parameters_.radius_, cur_pos_);
+               if (parameters_.occupancy_DUP_pub_) {
 
-          visualization_msgs::Marker slice_marker;
-          esdf_map->GetSliceMarker(slice_marker, parameters_.slice_vis_level_, 100,
-                                   Eigen::Vector4d(0, 1.0, 0, 1), parameters_.slice_vis_max_dist_);
-          slice_pub_.publish(slice_marker);
+               }
+               if (parameters_.occupancy_img_pub_) {
+                    // mono8 for 8UC1 grayscale images
+                    cv::flip(image, image, 1); // flip the image horizontally y axis
+                    sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
+                    image_msg->header.stamp = ros::Time::now();
+                    occupancy_img_pub_.publish(image_msg);
+               }
+          }
+
+          // switch esdf marker visualization or not ########################################################
+          if (parameters_.esdf_marker_pub_) {
+               visualization_msgs::Marker slice_marker;
+               esdf_map->GetSliceMarker(slice_marker, parameters_.slice_vis_level_, 100,
+                                        Eigen::Vector4d(0, 1.0, 0, 1), parameters_.slice_vis_max_dist_);
+               slice_pub_.publish(slice_marker);
+          }
+          if (parameters_.esdf_pcl_pub_) {
+               sensor_msgs::PointCloud2 pcl;
+               esdf_map->Get2DESDFMap(pcl, parameters_.slice_vis_level_, parameters_.slice_vis_max_dist_);
+               esdf_pcl_pub_.publish(pcl);
+          }
+          // switch esdf img visualization or not ########################################################
+          // there maybe some problem with the esdf img sensor_msgs::ImagePtr publish
+          // if (parameters_.esdf_img_pub_ || parameters_.esdf_DUP_pub_) {
+          //      cv::Mat image;
+          //      if (global_vis)
+          //           esdf_map->Get2DGlobalESDFImage(image, parameters_.slice_vis_level_, parameters_.slice_vis_max_dist_);
+          //      else
+          //           esdf_map->Get2DLocalESDFImage(image, parameters_.slice_vis_level_, parameters_.slice_vis_max_dist_, parameters_.radius_, cur_pos_);
+          //      if (parameters_.esdf_DUP_pub_) { ////TODO: add UDP sender
+
+          //      }
+          //      if (parameters_.esdf_img_pub_) { //[ ]: reference ChatGPT have not been tested
+          //           // mono8 for 8UC1 grayscale images
+          //           cv::flip(merge_img, merge_img, 1); // flip the image horizontally y axis
+          //           sensor_msgs::ImagePtr image_msg = boost::make_shared<sensor_msgs::Image>();
+          //           image_msg.->width = image.cols;
+          //           image_msg->height = image.rows;
+          //           image_msg->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+          //           int stride = image.cols*sizeof(float);
+          //           image_msg->step = stride;
+          //           image_msg->data.resize(stride*image.rows);
+          //           std::memcpy((&image_msg->data[0]), image.data, stride*image.rows);
+          //           image_msg->header.stamp = ros::Time::now();
+          //           esdf_img_pub.publish(image_msg);
+          //      }
+          // }
+          
      }
      if (!text.empty()) {
           visualization_msgs::Marker marker;

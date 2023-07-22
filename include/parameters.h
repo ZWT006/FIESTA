@@ -167,6 +167,15 @@ struct Parameters {
   bool esdf_update_;
   int local_height_offset_; // local height offset for local map publisher
   // zwt ADD #########################################################
+  //  visualization and publishing options 
+  bool occupancy_pcl_pub_;
+  bool occupancy_img_pub_;
+  bool occupancy_DUP_pub_;
+  bool esdf_marker_pub_;
+  bool esdf_pcl_pub_;
+  bool esdf_img_pub_;
+  bool esdf_DUP_pub_;
+  // zwt ADD #########################################################
   Eigen::Vector3d radius_;
   // transforms
   Eigen::Matrix4d T_B_C_, T_D_B_;

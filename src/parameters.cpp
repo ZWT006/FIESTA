@@ -36,6 +36,15 @@ void fiesta::Parameters::SetParameters(const ros::NodeHandle &node) {
   node.param<bool>("global_pcl", global_pcl_, false);
   node.param<bool>("local_height", local_height_, false);
   node.param<bool>("esdf_update", esdf_update_, true);
+  node.param<bool>("occupancy_pcl_pub", occupancy_pcl_pub_, true);
+  node.param<bool>("occupancy_img_pub", occupancy_img_pub_, false);
+  node.param<bool>("occupancy_DUP_pub", occupancy_DUP_pub_, false);
+  node.param<bool>("esdf_marker_pub", esdf_marker_pub_, true);
+  node.param<bool>("esdf_pcl_pub", esdf_pcl_pub_, false);
+  node.param<bool>("esdf_img_pub", esdf_img_pub_, false);
+  node.param<bool>("esdf_DUP_pub", esdf_DUP_pub_, false);
+  if (!esdf_update_)
+    esdf_marker_pub_ = esdf_pcl_pub_ = esdf_img_pub_ = esdf_DUP_pub_ = false;
   // zwt ADD #########################################################
   if (!global_map_)
     global_vis_ = global_update_ = false;

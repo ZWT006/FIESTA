@@ -97,7 +97,19 @@ A `rviz` will be opened with the visualization of occupancy grid map and a slice
 
 _For more examples, usage and FAQ, please refer to the [Wiki][wiki].
 
-
+## Change list by zwt
+* `758385f`: add `bool` flag for navigation  
+    * `global_pcl`: input point clous is global = true / local = false
+    * `local_height`: local occ_map/esdf update height follow odometry = true / fixed = false
+    * `esdf_update`: update esdf map yes = true / no = false
+* `6666666`: add `ros::Publisher` for map using and bool switch  
+    * `occupancy_pcl_pub`: occupyancy sensor_msgs::PointCloud publish
+    * `occupancy_img_pub`: occupyancy sensor_msgs::Image publish
+    * `occupancy_DUP_pub`: occupyancy cv::Mat UDP send
+    * `esdf_marker_pub`: esdf map visualization_msgs::Marker publish
+    * `esdf_pcl_pub`: esdf map sensor_msgs::PointCloud2 publish
+    * `esdf_img_pub`: esdf map sensor_msgs::Image publish
+    * `esdf_DUP_pub`: esdf map cv::Mat UDP send
 
 ## Release History
 Prediction: 1.0.0 will be our first elegant version.

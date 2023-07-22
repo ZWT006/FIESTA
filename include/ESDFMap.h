@@ -17,6 +17,11 @@
 #include <algorithm>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Image.h>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <cv_bridge/cv_bridge.h>
 #include "parameters.h"
 
 namespace fiesta {
@@ -76,7 +81,7 @@ class ESDFMap {
 #endif
   std::vector<Eigen::Vector3i> vox_buffer_;
 #else // #ifndef HASH_TABLE
-  Eigen::Vector3d map_size_;
+  Eigen::Vector3d map_size_; // map size in pos (x, y, z); map_size_ = r_cornor_ - l_cornor_;
   Eigen::Vector3d min_range_, max_range_;  // map range in pos
   Eigen::Vector3i grid_size_;             // map range in index
   int grid_size_yz_;
@@ -99,7 +104,7 @@ class ESDFMap {
   std::queue<QueueElement> occupancy_queue_;
 
 // Map Properties
-  Eigen::Vector3d origin_;
+  Eigen::Vector3d origin_; // map origin in pos (x, y, z) 原点; origin_ = l_cornor_
   int reserved_idx_4_undefined_;
   int total_time_ = 0;
   int infinity_, undefined_;
@@ -147,6 +152,13 @@ class ESDFMap {
   void GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound);
   void GetSliceMarker(visualization_msgs::Marker &m, int slice, int id, Eigen::Vector4d color, double max_dist);
   void Get2DESDFMap(sensor_msgs::PointCloud2 &pcl, int slice, double max_dist);
+
+//######################################################################################################################
+// Map transform to using : zwt add
+  void Get2DLocalGridImage(cv::Mat &image, int vis_lower_bound, int vis_upper_bound,Eigen::Vector3d raduis,Eigen::Vector3d min_pos);
+  void Get2DLocalESDFImage(cv::Mat &image, int slice, double max_dist,Eigen::Vector3d raduis,Eigen::Vector3d min_pos);
+  void Get2DGlobalGridImage(cv::Mat &image, int vis_lower_bound, int vis_upper_bound);
+  void Get2DGlobalESDFImage(cv::Mat &image, int slice, double max_dist);
 
 // Local Range
   void SetUpdateRange(Eigen::Vector3d min_pos, Eigen::Vector3d max_pos, bool new_vec = true);

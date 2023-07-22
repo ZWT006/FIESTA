@@ -478,7 +478,7 @@ double fiesta::ESDFMap::GetDistance(Eigen::Vector3d pos) {
 double fiesta::ESDFMap::GetDistance(Eigen::Vector3i vox) {
   return distance_buffer_[Vox2Idx(vox)] < 0 ? infinity_ : distance_buffer_[Vox2Idx(vox)];
 }
-
+//zwt add for get distance, how to calculate the distance by trilinear interpolation
 double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
                                                  Eigen::Vector3d &grad) {
   if (!PosInMap(pos))
@@ -544,6 +544,7 @@ double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
 
 void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound) {
   m.header.frame_id = "world";
+  m.header.stamp = ros::Time::now();
   m.points.clear();
 #ifdef HASH_TABLE
   for (int i = 1; i < count; i++) {
@@ -581,6 +582,105 @@ void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bo
 //    cout << m.points.size() << endl;
 #endif
 }
+//######################################################################################################################
+//zwt add for get point cloud transform to image
+//2D occupancy image picture and compresses the 3D point cloud onto a flat surface 
+//2D esdf image only stores information about a slice
+void fiesta::ESDFMap::Get2DLocalGridImage(cv::Mat &image, int vis_lower_bound, int vis_upper_bound,Eigen::Vector3d raduis,Eigen::Vector3d min_pos) {
+  int MAP_SIZE_X = 2 * std::ceil(raduis(0) / resolution_);
+  int MAP_SIZE_Y = 2 * std::ceil(raduis(1) / resolution_);
+  // CV_8UC1 8位无符号整型单通道矩阵
+  cv::Mat obsimg = cv::Mat(MAP_SIZE_Y, MAP_SIZE_X, CV_8UC1, cv::Scalar(255));;
+  for (int x = min_vec_(0); x <= max_vec_(0); ++x)
+    for (int y = min_vec_(1); y <= max_vec_(1); ++y)
+      for (int z = min_vec_(2); z <= max_vec_(2); ++z) {
+        if (!Exist(Vox2Idx(Eigen::Vector3i(x, y, z))) || z < vis_lower_bound || z > vis_upper_bound)
+          continue;
+        Eigen::Vector3d pos;
+        Vox2Pos(Eigen::Vector3i(x, y, z), pos);
+        int image_x = std::floor((pos(0) - min_pos(0)) / resolution_);
+        int image_y = std::floor((pos(1) - min_pos(1)) / resolution_);
+        if (image_x < 0 || image_x >= MAP_SIZE_X || image_y < 0 || image_y >= MAP_SIZE_Y) {
+          cout <<"\033[33mOut Range !!!\033[0m image_x:" << image_x << "image_y:" << image_y << endl;
+          continue;
+        }
+        obsimg.at<uchar>(image_y, image_x) = 0; // scale 0-255 0=black 255=white
+      }
+  // return obsimg by "image"
+  image = obsimg;
+}
+void fiesta::ESDFMap::Get2DLocalESDFImage(cv::Mat &image, int slice, double max_dist,Eigen::Vector3d raduis,Eigen::Vector3d min_pos) {
+  int MAP_SIZE_X = 2 * std::ceil(raduis(0) / resolution_);
+  int MAP_SIZE_Y = 2 * std::ceil(raduis(1) / resolution_);
+  // CV_32FC1 32位浮点型单通道矩阵
+  cv::Mat esdfimg = cv::Mat(MAP_SIZE_Y, MAP_SIZE_X, CV_32FC1, cv::Scalar(0));;
+  for (int x = min_vec_(0); x <= max_vec_(0); ++x)
+      for (int y = min_vec_(1); y <= max_vec_(1); ++y) {
+        int z = slice;
+        Eigen::Vector3i vox = Eigen::Vector3i(x, y, z);
+        if (distance_buffer_[Vox2Idx(vox)] < 0 || distance_buffer_[Vox2Idx(vox)] >= infinity_)
+          continue;
+
+        Eigen::Vector3d pos;
+        Vox2Pos(vox, pos);
+        int image_x = std::floor((pos(0) - min_pos(0)) / resolution_);
+        int image_y = std::floor((pos(1) - min_pos(1)) / resolution_);
+        if (image_x < 0 || image_x >= MAP_SIZE_X || image_y < 0 || image_y >= MAP_SIZE_Y) {
+          cout <<"\033[33mOut Range !!!\033[0m image_x:" << image_x << "image_y:" << image_y << endl;
+          continue;
+        }
+        esdfimg.at<float>(image_y, image_x) = distance_buffer_[Vox2Idx(vox)];
+      }
+  // return esdfimg by "image"
+  image = esdfimg;
+}
+void fiesta::ESDFMap::Get2DGlobalGridImage(cv::Mat &image, int vis_lower_bound, int vis_upper_bound) {
+  int MAP_SIZE_X = std::ceil(map_size_(0) / resolution_);
+  int MAP_SIZE_Y = std::ceil(map_size_(1) / resolution_);
+  cv::Mat obsimg = cv::Mat(MAP_SIZE_Y, MAP_SIZE_X, CV_8UC1, cv::Scalar(255));;
+  for (int x = min_vec_(0); x <= max_vec_(0); ++x)
+    for (int y = min_vec_(1); y <= max_vec_(1); ++y)
+      for (int z = min_vec_(2); z <= max_vec_(2); ++z) {
+        if (!Exist(Vox2Idx(Eigen::Vector3i(x, y, z))) || z < vis_lower_bound || z > vis_upper_bound)
+          continue;
+        Eigen::Vector3d pos;
+        Vox2Pos(Eigen::Vector3i(x, y, z), pos);
+        int image_x = std::floor((pos(0) - origin_(0)) / resolution_);
+        int image_y = std::floor((pos(1) - origin_(1)) / resolution_);
+        if (image_x < 0 || image_x >= MAP_SIZE_X || image_y < 0 || image_y >= MAP_SIZE_Y) {
+          cout <<"\033[33mOut Range !!!\033[0m image_x:" << image_x << "image_y:" << image_y << endl;
+          continue;
+        }
+        obsimg.at<uchar>(image_y, image_x) = 0; // scale 0-255 0=black 255=white
+      }
+  image = obsimg;
+}
+void fiesta::ESDFMap::Get2DGlobalESDFImage(cv::Mat &image, int slice, double max_dist) {
+  int MAP_SIZE_X = std::ceil(map_size_(0) / resolution_);
+  int MAP_SIZE_Y = std::ceil(map_size_(1) / resolution_);
+  // CV_32FC1 32位浮点型单通道矩阵
+  cv::Mat esdfimg = cv::Mat(MAP_SIZE_Y, MAP_SIZE_X, CV_32FC1, cv::Scalar(0));;
+  for (int x = min_vec_(0); x <= max_vec_(0); ++x)
+      for (int y = min_vec_(1); y <= max_vec_(1); ++y) {
+        int z = slice;
+        Eigen::Vector3i vox = Eigen::Vector3i(x, y, z);
+        if (distance_buffer_[Vox2Idx(vox)] < 0 || distance_buffer_[Vox2Idx(vox)] >= infinity_)
+          continue;
+
+        Eigen::Vector3d pos;
+        Vox2Pos(vox, pos);
+        int image_x = std::floor((pos(0) - origin_(0)) / resolution_);
+        int image_y = std::floor((pos(1) - origin_(1)) / resolution_);
+        if (image_x < 0 || image_x >= MAP_SIZE_X || image_y < 0 || image_y >= MAP_SIZE_Y) {
+          cout <<"\033[33mOut Range !!!\033[0m image_x:" << image_x << "image_y:" << image_y << endl;
+          continue;
+        }
+        esdfimg.at<float>(image_y, image_x) = distance_buffer_[Vox2Idx(vox)];
+      }
+  // return esdfimg by "image"
+  image = esdfimg;
+}
+//######################################################################################################################
 
 inline std_msgs::ColorRGBA RainbowColorMap(double h) {
   std_msgs::ColorRGBA color;
@@ -640,6 +740,7 @@ inline std_msgs::ColorRGBA RainbowColorMap(double h) {
 void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, int id,
                                      Eigen::Vector4d color, double max_dist) {
   m.header.frame_id = "world";
+  m.header.stamp = ros::Time::now();
   m.id = id;
   m.type = visualization_msgs::Marker::POINTS;
   m.action = visualization_msgs::Marker::MODIFY;
@@ -744,6 +845,7 @@ void fiesta::ESDFMap::Get2DESDFMap(sensor_msgs::PointCloud2 &pcl, int slice, dou
   cloud.is_dense = true;
   cloud.header.frame_id = "world";
   pcl::toROSMsg(cloud, pcl);
+  pcl.header.stamp = ros::Time::now();
   }
 // endregion
 
@@ -839,12 +941,12 @@ int fiesta::ESDFMap::FindAndInsert(Eigen::Vector3i hash_key) {
 void fiesta::ESDFMap::SetUpdateRange(Eigen::Vector3d min_pos, Eigen::Vector3d max_pos, bool new_vec) {
 #ifndef HASH_TABLE
   min_pos(0) = std::max(min_pos(0), min_range_(0));
-    min_pos(1) = std::max(min_pos(1), min_range_(1));
-    min_pos(2) = std::max(min_pos(2), min_range_(2));
+  min_pos(1) = std::max(min_pos(1), min_range_(1));
+  min_pos(2) = std::max(min_pos(2), min_range_(2));
 
-    max_pos(0) = std::min(max_pos(0), max_range_(0));
-    max_pos(1) = std::min(max_pos(1), max_range_(1));
-    max_pos(2) = std::min(max_pos(2), max_range_(2));
+  max_pos(0) = std::min(max_pos(0), max_range_(0));
+  max_pos(1) = std::min(max_pos(1), max_range_(1));
+  max_pos(2) = std::min(max_pos(2), max_range_(2));
 #endif
   if (new_vec) {
     last_min_vec_ = min_vec_;
