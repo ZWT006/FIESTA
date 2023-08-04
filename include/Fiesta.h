@@ -134,7 +134,7 @@ Fiesta<DepthMsgType, PoseMsgType>::Fiesta(ros::NodeHandle node) {
 //    transform_sub_ = node.subscribe("/vicon/firefly_sbx/firefly_sbx", 1000, PoseCallback);
 
      slice_pub_ = node.advertise<visualization_msgs::Marker>("ESDFMap/slice", 1, true);
-     occupancy_pub_ = node.advertise<sensor_msgs::PointCloud>("ESDFMap/occ_pc", 1, true);
+     occupancy_pub_ = node.advertise<sensor_msgs::PointCloud2>("ESDFMap/occ_pc", 1, true);
      text_pub_ = node.advertise<visualization_msgs::Marker>("ESDFMap/text", 1, true);
 
      // zwt ADD #########################################################
@@ -168,7 +168,7 @@ void Fiesta<DepthMsgType, PoseMsgType>::Visualization(ESDFMap *esdf_map, bool gl
           // zwt ADD ########################################################################################
           // switch occupancy pcl visualization or not ######################################################
           if (parameters_.occupancy_pcl_pub_) {
-               sensor_msgs::PointCloud pc;
+               sensor_msgs::PointCloud2 pc;
                if (parameters_.local_height_) // 如果期望的 occupancy map 是局部的，那么需要更新局部的高度范围
                     esdf_map->GetPointCloud(pc, parameters_.vis_lower_bound_ + parameters_.local_height_offset_, parameters_.vis_upper_bound_ + parameters_.local_height_offset_);
                else
@@ -631,10 +631,10 @@ void Fiesta<DepthMsgType, PoseMsgType>::UpdateEsdfEvent(const ros::TimerEvent & 
 //                       timing::Timing::SecondsToTimeString(timing::Timing::GetMeanSeconds("UpdateESDF") * 1000)
 //                       + " ms";
 
-     if (parameters_.visualize_every_n_updates_!=0 && esdf_cnt_%parameters_.visualize_every_n_updates_==0) {
+     // if (parameters_.visualize_every_n_updates_!=0 && esdf_cnt_%parameters_.visualize_every_n_updates_==0) {
 //        std::thread(Visualization, esdf_map_, text).detach();
           Visualization(esdf_map_, parameters_.global_vis_, "");
-     }
+     // }
 //    else {
 //        std::thread(Visualization, nullptr, text).detach();
 //        Visualization(nullptr, globalVis, "");

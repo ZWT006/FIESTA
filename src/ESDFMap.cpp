@@ -542,10 +542,11 @@ double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
 
 // region VISUALIZATION
 
-void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound) {
-  m.header.frame_id = "world";
-  m.header.stamp = ros::Time::now();
-  m.points.clear();
+void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud2 &m, int vis_lower_bound, int vis_upper_bound) {
+  pcl::PointCloud<pcl::PointXYZI> cloud;
+  // m.header.frame_id = "world";
+  // m.header.stamp = ros::Time::now();
+  // m.points.clear();
 #ifdef HASH_TABLE
   for (int i = 1; i < count; i++) {
     if (!Exist(Vox2Idx(vox_buffer_[i])) || vox_buffer_[i].z() < vis_lower_bound || vox_buffer_[i].z() > vis_upper_bound
@@ -573,12 +574,24 @@ void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bo
         Eigen::Vector3d pos;
         Vox2Pos(Eigen::Vector3i(x, y, z), pos);
 
-        geometry_msgs::Point32 p;
-        p.x = pos(0);
-        p.y = pos(1);
-        p.z = pos(2);
-        m.points.push_back(p);
+        // geometry_msgs::Point32 p;
+        // p.x = pos(0);
+        // p.y = pos(1);
+        // p.z = pos(2);
+        // m.points.push_back(p);
+        pcl::PointXYZI pt;
+        pt.x = pos(0);
+        pt.y = pos(1);
+        pt.z = pos(2);
+        // pt.intensity = distance_buffer_[Vox2Idx(vox)];
+        cloud.push_back(pt);
       }
+      cloud.width = cloud.points.size();
+      cloud.height = 1;
+      cloud.is_dense = true;
+      cloud.header.frame_id = "world";
+      pcl::toROSMsg(cloud, m);
+      m.header.stamp = ros::Time::now();
 //    cout << m.points.size() << endl;
 #endif
 }

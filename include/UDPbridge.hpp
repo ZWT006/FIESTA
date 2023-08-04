@@ -38,30 +38,7 @@
 // #define DEST_PORT 1024
 // #define DSET_IP_ADDRESS  "192.168.2.130"
 
-enum UDP_DATA_TYPE
-{
-    OBSTACLE_MAP    = (1 << 0),
-    ROBOT_POSE      = (1 << 1),
-    ROBOT_TRAJECTORY= (1 << 2),
-};
 
-struct geometry_msgs_Pose
-{
-    double x;
-    double y;
-    double z;
-    double qx;
-    double qy;
-    double qz;
-    double qw;
-};
-
-struct UDPHeader
-{
-    uint8_t header;
-    uint16_t length;
-    uint8_t struct_num;
-};
 //  char datas structure for UDP communication #################################################
 /* header:      1 bytes | 0xFF      |
  * length:      2 bytes | uint16_t  | length of all data from header to end
@@ -74,9 +51,50 @@ struct UDPHeader
  * data size:   2 bytes | uint16_t   | size of data
  * data:        x bytes | data       | data
  * end:         1 bytes | 0xEE       |
+ * struce -> data  ###########################################################################
+ * cv::Mat binary_image_ struct -> data ------------------------------------------------------
+ * cols        2 bytes | uint16_t   | cols of cv::Mat
+ * rows        2 bytes | uint16_t   | rows of cv::Mat
+ * resolution  4 bytes | float      | resolution of cv::Mat
+ * char        x bytes | data       | bit 0|1 of cv::Mat Binary image 0/255
+ * geometry_msgs::Pose Pose_ struct -> data --------------------------------------------------
+ * x           8 bytes | double     | x
+ * y           8 bytes | double     | y
+ * z           8 bytes | double     | z
+ * qx          8 bytes | double     | qx
+ * qy          8 bytes | double     | qy
+ * qz          8 bytes | double     | qz
+ * qw          8 bytes | double     | qw
+ * nav_msgs::Path Path_ struct -> data -------------------------------------------------------
+ * pose size   2 bytes | uint16_t   | size of pose
+ * pose struce 56 bytes| double x 7 | pose
 */
 
+enum UDP_DATA_TYPE
+{
+    OBSTACLE_MAP    = (1 << 0),
+    ROBOT_POSE      = (1 << 1),
+    ROBOT_TRAJECTORY= (1 << 2),
+};
 
+
+struct UDPHeader
+{
+    uint8_t header;
+    uint16_t length;
+    uint8_t struct_num;
+};
+
+struct geometry_msgs_Pose
+{
+    double x;
+    double y;
+    double z;
+    double qx;
+    double qy;
+    double qz;
+    double qw;
+};
 /*
  *
 */
@@ -114,6 +132,7 @@ class UDPBridge
     // bool setDataTypes(UDP_DATA_TYPE data_type);
     //TODO: add template for different data types
     bool setcvMat(cv::Mat &mat);
+    bool resetsend();
     bool setROSPose(geometry_msgs::Pose &pose);
     bool setROSNavseq(nav_msgs::Path &path);
     bool setHeaderandBail();
@@ -124,32 +143,40 @@ class UDPBridge
     bool getROSNavseq(nav_msgs::Path &path);
 };
 
-bool UDPBridge::setUDP(const int port,const char *ip)
-{
+bool UDPBridge::setUDP(const int port,const char *ip) {
     port_ = port;
     ip_ = std::string(ip);
     socket_fd_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if(socket_fd_ < 0)
-    {
-        std::cout << "socket create failed" << std::endl;
+    if(socket_fd_ < 0) 
+        // std::cout << "socket create failed" << std::endl;
         return false;
-    }
     //将addr_serv数组全体内存空间按字节整体清零
     memset(&addr_serv, 0, sizeof(addr_serv));
     addr_serv.sin_family = AF_INET;
     addr_serv.sin_addr.s_addr = inet_addr(ip); //服务器ip，不是本机ip
-    addr_serv.sin_port = htons(port);//服务器端口
+    addr_serv.sin_port = htons(port);//服务器端口号
     return true;
 }
 
-bool UDPBridge::setHeaderandBail()
-{
+bool UDPBridge::resetsend() {
+    memset(send_buffer_, 0, sizeof(send_buffer_));
+    data_index_ = HEADER_SIZE-1;
+    return true;
+}
+
+bool UDPBridge::setcvMat(cv::Mat &mat) {
+    binary_image_ = mat;
+    cvMatBetySize_ = binary_image_.total() * binary_image_.elemSize();
+
+    return true;
+}
+
+bool UDPBridge::setHeaderandBail() {
     UDPHeader header;
     header.header = 0xFF;
     header.length = 0;
     header.struct_num = 0;
     memcpy(send_buffer_, &header, sizeof(header));
-    data_index_ = sizeof(header);
     return true;
 }
 
